@@ -1,6 +1,5 @@
 package com.example.playlist_builder.data;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
