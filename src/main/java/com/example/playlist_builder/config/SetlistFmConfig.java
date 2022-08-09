@@ -8,5 +8,5 @@ import org.springframework.context.annotation.Configuration;
 @AllArgsConstructor
 @Data
 public class SetlistFmConfig {
-    private final String token = "RYHtJtNU_uUkmWT7Nr9b4yMIgb_PL9jjnzB3";
+    private final String token = /*api key here*/;
 }
