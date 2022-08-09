@@ -44,7 +44,7 @@ public class SetlistFmService {
         }
     }
 
-    public ResponseEntity getSetlistItems(String setlistId) {
+    public ResponseEntity<String> getSetlistItems(String setlistId) {
         String apiUrl = "https://api.setlist.fm/rest/1.0/setlist/" + setlistId;
 
         HttpHeaders headers = new HttpHeaders();
