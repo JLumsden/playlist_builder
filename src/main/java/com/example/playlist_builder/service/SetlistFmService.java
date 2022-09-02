@@ -58,14 +58,11 @@ public class SetlistFmService {
         try {
             JsonNode rootNode = objectMapper.readTree(setlistString);
             setlist.setArtist(rootNode.path("artist").path("name").asText());
-            log.info("artist = " + setlist.getArtist());
             JsonNode setsNode = rootNode.path("sets");
-            log.info("setsNode = " + setsNode);
             JsonNode setNode = setsNode.path("set");
-            log.info("setNode = " + setNode);
             JsonNode songNode;
+
             for (JsonNode set : setNode) {
-                log.info("set = " + set);
                 songNode = set.path("song");
                 for (JsonNode song : songNode) {
                     songNames.add(song.path("name").asText());
@@ -82,6 +79,8 @@ public class SetlistFmService {
         catch (IOException e) {
             e.printStackTrace();
         }
+        log.info("Artist: " + setlist.getArtist());
+        log.info("Tracks: " + setlist.getSongNames());
         return setlist;
     }
 
