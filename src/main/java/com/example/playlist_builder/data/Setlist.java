@@ -7,7 +7,8 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-public class SetlistDto {
+public class Setlist {
+    private String setlistId;
     private String artist;
     private List<String> songNames;
 }
