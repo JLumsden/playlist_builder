@@ -40,6 +40,10 @@ public class SetlistFmController {
     public String getHome() {
         return "index";
     }
+    @RequestMapping(value="/error", method = RequestMethod.GET)
+    public String getError() {
+        return "error";
+    }
 }
 
 //api key
