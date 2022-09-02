@@ -8,5 +8,6 @@ import org.springframework.context.annotation.Configuration;
 @AllArgsConstructor
 @Data
 public class SetlistFmConfig {
-    private final String token = /*api key here*/;
+    private final String token = "your api token here";
+    private final String apiUrl = "https://api.setlist.fm";
 }
