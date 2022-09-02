@@ -1,7 +1,8 @@
 package com.example.playlist_builder.service;
 
 import com.example.playlist_builder.config.SetlistFmConfig;
-import com.example.playlist_builder.data.SetlistDto;
+import com.example.playlist_builder.data.Setlist;
+import com.example.playlist_builder.repository.SetlistFmApiRepository;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.json.JsonParseException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -20,9 +20,9 @@ import java.util.List;
 @Service
 @Slf4j
 public class SetlistFmService {
-    private final RestTemplate restTemplate = new RestTemplate();
+    private SetlistFmApiRepository setlistFmApiRepository;
     SetlistFmConfig setlistFmConfig;
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
 
     public String setlistIdParser(String setlistUrl) {
         //https://www.setlist.fm/setlist/metallica/2022/grant-park-chicago-il-23b230f3.html
@@ -40,30 +40,25 @@ public class SetlistFmService {
         } else if (fileNameIndex == -1) {
             return tag;
         } else {
-            return "shit";
+            return "error handling should be better";
         }
     }
 
     public ResponseEntity<String> getSetlistItems(String setlistId) {
-        String apiUrl = "https://api.setlist.fm/rest/1.0/setlist/" + setlistId;
+        String apiUrl = urlBuilder("/rest/1.0/setlist/", setlistId);
+        HttpEntity<Void> entity = new HttpEntity<>(headersBuilder());
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("x-api-key", setlistFmConfig.getToken());
-
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-
-        return restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
+        return setlistFmApiRepository.get(apiUrl, entity, String.class);
     }
 
-    public SetlistDto parseJson(String setlist) {
+    public Setlist parseJson(String setlistString) {
         List<String> songNames = new ArrayList<>();
-        SetlistDto setlistDto = new SetlistDto();
+        Setlist setlist = new Setlist();
 
         try {
-            JsonNode rootNode = objectMapper.readTree(setlist);
-            setlistDto.setArtist(rootNode.path("artist").path("name").asText());
-            log.info("artist = " + setlistDto.getArtist());
+            JsonNode rootNode = objectMapper.readTree(setlistString);
+            setlist.setArtist(rootNode.path("artist").path("name").asText());
+            log.info("artist = " + setlist.getArtist());
             JsonNode setsNode = rootNode.path("sets");
             log.info("setsNode = " + setsNode);
             JsonNode setNode = setsNode.path("set");
@@ -76,7 +71,7 @@ public class SetlistFmService {
                     songNames.add(song.path("name").asText());
                 }
             }
-            setlistDto.setSongNames(songNames);
+            setlist.setSongNames(songNames);
         }
         catch (JsonParseException e) {
             e.printStackTrace();
@@ -87,6 +82,20 @@ public class SetlistFmService {
         catch (IOException e) {
             e.printStackTrace();
         }
-        return setlistDto;
+        return setlist;
+    }
+
+    public HttpHeaders headersBuilder() {
+        HttpHeaders headers = new HttpHeaders();
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("x-api-key", setlistFmConfig.getToken());
+
+        return headers;
+    }
+
+    public String urlBuilder(String endPoint, String setlistId) {
+        //TODO Proper URL encoding and building
+        return setlistFmConfig.getApiUrl() + endPoint + setlistId;
     }
 }
