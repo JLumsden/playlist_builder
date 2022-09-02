@@ -1,6 +1,6 @@
 package com.example.playlist_builder.controller;
 
-import com.example.playlist_builder.data.SetlistDto;
+import com.example.playlist_builder.data.Setlist;
 import com.example.playlist_builder.service.SetlistFmService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,8 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import java.util.List;
 
 @Slf4j
 @AllArgsConstructor
@@ -32,7 +30,7 @@ public class SetlistFmController {
             return "error";
         }
 
-        SetlistDto setlistDto = setlistFmService.parseJson(response.getBody());
+        Setlist setlist = setlistFmService.parseJson(response.getBody());
         //log.info(songNames.toString());
 
         return "setlist_success";
