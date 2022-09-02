@@ -45,6 +45,3 @@ public class SetlistFmController {
         return "error";
     }
 }
-
-//api key
-//RYHtJtNU_uUkmWT7Nr9b4yMIgb_PL9jjnzB3
