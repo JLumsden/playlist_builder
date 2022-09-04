@@ -24,6 +24,29 @@ public class SetlistFmService {
     SetlistFmConfig setlistFmConfig;
     private ObjectMapper objectMapper;
 
+    public String postPlaylistUrlDelegator(Setlist setlist, String setlistUrl) {
+        log.info("SetlistUrl: " + setlistUrl);
+
+        String setlistId = setlistIdParser(setlistUrl);
+        if (setlistId.equals("error handling should be better")) {
+            return "error";
+        }
+        setlist.setSetlistId(setlistId);
+
+        ResponseEntity<String> response = getSetlistItems(setlistId);
+        if (response.getStatusCodeValue() != 200) {
+            return "error";
+        }
+
+        parseJson(setlist, response.getBody());
+
+        log.info("SetlistId: " + setlist.getSetlistId());
+        log.info("Artist: " + setlist.getArtist());
+        log.info("Tracks: " + setlist.getSongNames());
+
+        return "setlist_success";
+    }
+
     public String setlistIdParser(String setlistUrl) {
         //https://www.setlist.fm/setlist/metallica/2022/grant-park-chicago-il-23b230f3.html
         String[] tokens = setlistUrl.split("/");
@@ -51,9 +74,8 @@ public class SetlistFmService {
         return setlistFmApiRepository.get(apiUrl, entity, String.class);
     }
 
-    public Setlist parseJson(String setlistString) {
+    public void parseJson(Setlist setlist, String setlistString) {
         List<String> songNames = new ArrayList<>();
-        Setlist setlist = new Setlist();
 
         try {
             JsonNode rootNode = objectMapper.readTree(setlistString);
@@ -79,9 +101,6 @@ public class SetlistFmService {
         catch (IOException e) {
             e.printStackTrace();
         }
-        log.info("Artist: " + setlist.getArtist());
-        log.info("Tracks: " + setlist.getSongNames());
-        return setlist;
     }
 
     public HttpHeaders headersBuilder() {
