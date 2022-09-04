@@ -109,6 +109,7 @@ public class SpotifyAuthService {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return "redirect";
+        //Should utilize SpotifyAuthConfig better here
+        return "authenticated";
     }
 }
