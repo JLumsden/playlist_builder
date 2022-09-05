@@ -63,7 +63,7 @@ public class SpotifyApiService {
                 log.info("Failed to search: " + song);
                 throw new RuntimeException();
             } else {
-                uri = parseForUri(response.getBody());
+                uri = parseForUri(response.getBody(), setlist.getArtist());
                 if (!(uri.equals("error"))) {
                     songlist.add(uri);
                     log.info("Track: " + song);
@@ -123,15 +123,20 @@ public class SpotifyApiService {
         }
     }
 
-    public String parseForUri(String json) {
+    public String parseForUri(String json, String artist) {
         try {
+            JsonNode artistsNode;
             JsonNode rootNode = objectMapper.readTree(json);
             rootNode = rootNode.path("tracks");
             rootNode = rootNode.path("items");
             for (JsonNode trackNode : rootNode) {
                 //TODO THIS IS SO BAD. DO BETTER
-                log.info("trackNode: " + trackNode.asText());
-                return trackNode.path("uri").asText();
+                artistsNode = trackNode.path("artists");
+                for (JsonNode artistNode : artistsNode) {
+                    if (artistNode.path("name").asText().equals(artist)) {
+                        return trackNode.path("uri").asText();
+                    }
+                }
             }
         } catch (JsonMappingException e) {
             throw new RuntimeException(e);
