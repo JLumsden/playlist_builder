@@ -7,7 +7,7 @@ I heavily indexed into the Java/Spring Boot environment to make use of the suite
 ### The why  
 While growing up, my father and I always had a copy of a band's setlist to get excited and prep for an upcoming concert. I decided to lean into that idea by using some APIs to bring it to the modern age. Instead of filtering through a discography and burning a cd, it's done with a copy/pasted link and a couple button clicks.  
 ### The how do I
-A .jar of the program can be found in ```out/artifacts/playlist_builder_jar```. However, it will only work if added to my Spotify developer dashboard, or if you're able to get your own client id in there. I plan on hosting it eventually, but until then the .jar is the way.  
+A .jar of the program can be found in ```out/artifacts/playlist_builder_jar```. However, it will only work if added to my Spotify developer dashboard, or if you're able to get your own client id in there. If you want to utilize it, feel free to contact me, I have 24 open spots currently. I plan on hosting it eventually, but until then, the .jar is the way.  
 ### Todos  
 - [] Better UI. (Front end wizards who are bored or need a project, I will welcome you with open arms.)  
 - [] Create the playlists off my own account to ensure they stay public.  
