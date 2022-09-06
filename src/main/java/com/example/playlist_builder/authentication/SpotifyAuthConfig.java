@@ -1,4 +1,4 @@
-package com.example.playlist_builder.config;
+package com.example.playlist_builder.authentication;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

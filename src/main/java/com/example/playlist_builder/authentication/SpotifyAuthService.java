@@ -1,8 +1,7 @@
-package com.example.playlist_builder.service;
+package com.example.playlist_builder.authentication;
 
-import com.example.playlist_builder.config.SpotifyAuthConfig;
-import com.example.playlist_builder.data.AuthData;
 import com.example.playlist_builder.repository.SpotifyApiRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.json.JsonParseException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -28,6 +25,7 @@ public class SpotifyAuthService {
 
     private final SpotifyAuthConfig spotifyAuthConfig;
     private final SpotifyApiRepository spotifyApiRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public void performAuthenticationDelegator(AuthData authData) {
         createCodeVerifier(authData);
@@ -39,7 +37,6 @@ public class SpotifyAuthService {
         if(response.getStatusCodeValue() != 200) {
             return "error";
         }
-
         return parseJsonForAccessToken(response.getBody(), authData);
     }
 
@@ -52,7 +49,7 @@ public class SpotifyAuthService {
     }
 
     public ResponseEntity<String> getAccessToken(AuthData authData, String code) {
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(createAuthPayload(authData, code), createHeaders());
+        HttpEntity<String> request = new HttpEntity<>(createAuthPayload(authData, code), createHeaders());
 
         return spotifyApiRepository.post(spotifyAuthConfig.getAuthUrl(), request, String.class);
     }
@@ -78,16 +75,20 @@ public class SpotifyAuthService {
         authData.setCode_challenge(Base64.getUrlEncoder().withoutPadding().encodeToString(digest));
     }
 
-    //TODO Change to utilize jackson and probably data object
-    public MultiValueMap<String, String> createAuthPayload(AuthData authData, String code) {
-        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("client_id", spotifyAuthConfig.getClientId());
-        map.add("grant_type", "authorization_code");
-        map.add("code", code);
-        map.add("redirect_uri", spotifyAuthConfig.getRedirectUrl());
-        map.add("code_verifier", authData.getCode_verifier());
+    public String createAuthPayload(AuthData authData, String code) {
+        AuthPayloadDto authPayloadDto = new AuthPayloadDto(
+                spotifyAuthConfig.getClientId(),
+                "authorization_code",
+                code,
+                spotifyAuthConfig.getRedirectUrl(),
+                authData.getCode_verifier()
+        );
 
-        return map;
+        try {
+            return objectMapper.writeValueAsString(authPayloadDto);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public HttpHeaders createHeaders() {
@@ -99,8 +100,7 @@ public class SpotifyAuthService {
 
     public String parseJsonForAccessToken(String response, AuthData authData) {
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode rootNode = mapper.readTree(response);
+            JsonNode rootNode = objectMapper.readTree(response);
             authData.setAccess_token(rootNode.path("access_token").asText());
         } catch (JsonParseException e) {
             e.printStackTrace();
