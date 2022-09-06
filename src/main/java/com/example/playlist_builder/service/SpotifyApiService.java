@@ -4,10 +4,6 @@ import com.example.playlist_builder.data.CreatePlaylistDto;
 import com.example.playlist_builder.data.Setlist;
 import com.example.playlist_builder.data.SonglistDto;
 import com.example.playlist_builder.repository.SpotifyApiRepository;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
@@ -27,7 +23,7 @@ import java.util.List;
 @Slf4j
 public class SpotifyApiService {
     private final SpotifyApiRepository spotifyApiRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonService jsonService;
 
     public String buildPlaylistDelegator(Setlist setlist, String accessToken) {
         SonglistDto songlistDto = createSonglistDto(setlist, accessToken);
@@ -63,7 +59,7 @@ public class SpotifyApiService {
                 log.info("Failed to search: " + song);
                 throw new RuntimeException();
             } else {
-                uri = parseForUri(response.getBody(), setlist.getArtist());
+                uri = jsonService.parseSearchResultForUri(response.getBody(), setlist.getArtist());
                 if (!(uri.equals("error"))) {
                     songlist.add(uri);
                     log.info("Track: " + song);
@@ -79,7 +75,7 @@ public class SpotifyApiService {
     public ResponseEntity<String> populatePlaylist(SonglistDto songlistDto, String playlistId, String accessToken) {
         String url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks";
 
-        String payload = dtoToJson(songlistDto);
+        String payload = jsonService.dtoToJson(songlistDto);
 
         HttpEntity<String> entity = new HttpEntity<>(payload, createHeaders(accessToken));
 
@@ -91,7 +87,7 @@ public class SpotifyApiService {
     public String createPlaylist(Setlist setlist, String accessToken) {
         CreatePlaylistDto createPlaylistDto = setCreatePlaylistDto(setlist);
 
-        HttpEntity<String> entity = new HttpEntity<>(dtoToJson(createPlaylistDto), createHeaders(accessToken));
+        HttpEntity<String> entity = new HttpEntity<>(jsonService.dtoToJson(createPlaylistDto), createHeaders(accessToken));
 
         String url = createPlaylistUrlBuilder(getUserId(accessToken));
 
@@ -99,7 +95,7 @@ public class SpotifyApiService {
         if(response.getStatusCodeValue() != 201) {
             return "error";
         }
-        return parseForId(response.getBody());
+        return jsonService.parseForId(response.getBody());
     }
 
     public String getUserId(String accessToken) {
@@ -109,41 +105,7 @@ public class SpotifyApiService {
 
         ResponseEntity<String> response = spotifyApiRepository.get(url, entity, String.class);
 
-        return parseForId(response.getBody());
-    }
-
-    public String parseForId(String json) {
-        try {
-            JsonNode rootNode = objectMapper.readTree(json);
-            return rootNode.path("id").asText();
-        } catch (JsonMappingException e) {
-            throw new RuntimeException(e);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public String parseForUri(String json, String artist) {
-        try {
-            JsonNode artistsNode;
-            JsonNode rootNode = objectMapper.readTree(json);
-            rootNode = rootNode.path("tracks");
-            rootNode = rootNode.path("items");
-            for (JsonNode trackNode : rootNode) {
-                //TODO THIS IS SO BAD. DO BETTER
-                artistsNode = trackNode.path("artists");
-                for (JsonNode artistNode : artistsNode) {
-                    if (artistNode.path("name").asText().equals(artist)) {
-                        return trackNode.path("uri").asText();
-                    }
-                }
-            }
-        } catch (JsonMappingException e) {
-            throw new RuntimeException(e);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        return "error";
+        return jsonService.parseForId(response.getBody());
     }
 
     public CreatePlaylistDto setCreatePlaylistDto(Setlist setlist) {
@@ -157,14 +119,6 @@ public class SpotifyApiService {
         headers.setBearerAuth(accessToken);
 
         return headers;
-    }
-
-    public <T> String dtoToJson(T dto) {
-        try {
-            return objectMapper.writeValueAsString(dto);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     public String createPlaylistUrlBuilder(String userId) {
