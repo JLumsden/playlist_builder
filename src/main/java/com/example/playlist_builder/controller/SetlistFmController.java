@@ -1,10 +1,10 @@
 package com.example.playlist_builder.controller;
 
-import com.example.playlist_builder.data.AuthData;
+import com.example.playlist_builder.authentication.AuthData;
 import com.example.playlist_builder.data.Setlist;
 import com.example.playlist_builder.service.SetlistFmService;
 import com.example.playlist_builder.service.SpotifyApiService;
-import com.example.playlist_builder.service.SpotifyAuthService;
+import com.example.playlist_builder.authentication.SpotifyAuthService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -50,10 +50,13 @@ public class SetlistFmController {
     public String getError() {
         return "error";
     }
+
+    //Adds Setlist object to SessionAttributes
     @ModelAttribute("setlist")
     public Setlist getSetlist() {
         return new Setlist();
     }
+    //Adds AuthData object to SessionAttributes
     @ModelAttribute("authData")
     public AuthData getAuthData() {
         return new AuthData();
