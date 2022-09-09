@@ -10,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.json.JsonParseException;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -49,7 +51,9 @@ public class SpotifyAuthService {
     }
 
     public ResponseEntity<String> getAccessToken(AuthData authData, String code) {
-        HttpEntity<String> request = new HttpEntity<>(createAuthPayload(authData, code), createHeaders());
+        MultiValueMap<String, String> payload = createAuthPayload(authData, code);
+        log.info("Payload: " + payload);
+        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(payload, createHeaders());
 
         return spotifyApiRepository.post(spotifyAuthConfig.getAuthUrl(), request, String.class);
     }
@@ -75,20 +79,31 @@ public class SpotifyAuthService {
         authData.setCode_challenge(Base64.getUrlEncoder().withoutPadding().encodeToString(digest));
     }
 
-    public String createAuthPayload(AuthData authData, String code) {
-        AuthPayloadDto authPayloadDto = new AuthPayloadDto(
-                spotifyAuthConfig.getClientId(),
-                "authorization_code",
-                code,
-                spotifyAuthConfig.getRedirectUrl(),
-                authData.getCode_verifier()
-        );
+//    public String createAuthPayload(AuthData authData, String code) {
+//        AuthPayloadDto authPayloadDto = new AuthPayloadDto(
+//                spotifyAuthConfig.getClientId(),
+//                "authorization_code",
+//                code,
+//                spotifyAuthConfig.getRedirectUrl(),
+//                authData.getCode_verifier()
+//        );
+//
+//        try {
+//            return objectMapper.writeValueAsString(authPayloadDto);
+//        } catch (JsonProcessingException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
-        try {
-            return objectMapper.writeValueAsString(authPayloadDto);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+    public MultiValueMap<String, String> createAuthPayload(AuthData authData, String code) {
+        MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+        map.add("client_id", spotifyAuthConfig.getClientId());
+        map.add("grant_type", "authorization_code");
+        map.add("code", code);
+        map.add("redirect_uri", spotifyAuthConfig.getRedirectUrl());
+        map.add("code_verifier", authData.getCode_verifier());
+
+        return map;
     }
 
     public HttpHeaders createHeaders() {
