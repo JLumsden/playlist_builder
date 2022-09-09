@@ -41,6 +41,7 @@ public class SetlistFmService {
         parseJson(setlist, response.getBody());
 
         log.info("SetlistId: " + setlist.getSetlistId());
+        log.info("Name: " + setlist.getName());
         log.info("Artist: " + setlist.getArtist());
         log.info("Tracks: " + setlist.getSongNames());
 
@@ -74,15 +75,19 @@ public class SetlistFmService {
         return setlistFmApiRepository.get(apiUrl, entity, String.class);
     }
 
-    public void parseJson(Setlist setlist, String setlistString) {
+    public void parseJson(Setlist setlist, String setlistJson) {
         List<String> songNames = new ArrayList<>();
 
         try {
-            JsonNode rootNode = objectMapper.readTree(setlistString);
+            log.info("JSON: " + setlistJson);
+            JsonNode rootNode = objectMapper.readTree(setlistJson);
             setlist.setArtist(rootNode.path("artist").path("name").asText());
             JsonNode setsNode = rootNode.path("sets");
             JsonNode setNode = setsNode.path("set");
             JsonNode songNode;
+
+            JsonNode tourNode = rootNode.path("tour");
+            setlist.setName(tourNode.path("name").asText());
 
             for (JsonNode set : setNode) {
                 songNode = set.path("song");

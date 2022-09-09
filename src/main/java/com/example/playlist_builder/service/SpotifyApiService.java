@@ -109,7 +109,7 @@ public class SpotifyApiService {
     }
 
     public CreatePlaylistDto setCreatePlaylistDto(Setlist setlist) {
-        return new CreatePlaylistDto(setlist.getArtist() + "Setlist",
+        return new CreatePlaylistDto(setlist.getArtist() + " " + setlist.getName(),
                 "Setlist for " + setlist.getArtist() + "'s show");
     }
 

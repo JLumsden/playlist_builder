@@ -9,6 +9,7 @@ import java.util.List;
 @NoArgsConstructor
 public class Setlist {
     private String setlistId;
+    private String name;
     private String artist;
     private List<String> songNames;
 }
