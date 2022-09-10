@@ -52,7 +52,6 @@ public class SpotifyAuthService {
 
     public ResponseEntity<String> getAccessToken(AuthData authData, String code) {
         MultiValueMap<String, String> payload = createAuthPayload(authData, code);
-        log.info("Payload: " + payload);
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(payload, createHeaders());
 
         return spotifyApiRepository.post(spotifyAuthConfig.getAuthUrl(), request, String.class);
