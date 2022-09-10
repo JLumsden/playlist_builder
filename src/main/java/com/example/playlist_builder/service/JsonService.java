@@ -21,6 +21,16 @@ public class JsonService {
         }
     }
 
+    public String parseForUrl(String json) {
+        try {
+            JsonNode rootNode = objectMapper.readTree(json);
+            JsonNode external_urls = rootNode.path("external_urls");
+            return external_urls.path("spotify").asText();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public <T> String dtoToJson(T dto) {
         try {
             return objectMapper.writeValueAsString(dto);
