@@ -15,7 +15,7 @@ import org.springframework.web.servlet.ModelAndView;
 @Slf4j
 @AllArgsConstructor
 @Controller
-public class SetlistFmController {
+public class PlaylistBuilderController {
 
     private final SetlistFmService setlistFmService;
     private final SpotifyApiService spotifyApiService;
