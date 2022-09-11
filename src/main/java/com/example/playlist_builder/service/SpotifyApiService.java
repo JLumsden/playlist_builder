@@ -1,8 +1,10 @@
 package com.example.playlist_builder.service;
 
 import com.example.playlist_builder.data.CreatePlaylistDto;
+import com.example.playlist_builder.data.Playlist;
 import com.example.playlist_builder.data.Setlist;
 import com.example.playlist_builder.data.SonglistDto;
+import com.example.playlist_builder.repository.PlaylistRepository;
 import com.example.playlist_builder.repository.SpotifyApiRepository;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,19 +26,22 @@ import java.util.List;
 public class SpotifyApiService {
     private final SpotifyApiRepository spotifyApiRepository;
     private final JsonService jsonService;
+    private final PlaylistRepository playlistRepository;
 
     public String buildPlaylistDelegator(Setlist setlist, String accessToken) {
         SonglistDto songlistDto = createSonglistDto(setlist, accessToken);
 
-        String playlistId = createPlaylist(setlist, accessToken);
-        if (playlistId.equals("error")) {
-            return playlistId;
+        Playlist playlist = createPlaylist(setlist, accessToken);
+        if (playlist.getPlaylistId().equals("error")) {
+            return playlist.getPlaylistId();
         }
 
-        ResponseEntity<String> response = populatePlaylist(songlistDto, playlistId, accessToken);
+        ResponseEntity<String> response = populatePlaylist(songlistDto, playlist.getPlaylistId(), accessToken);
         if (response.getStatusCodeValue() != 201) {
             return "error";
         }
+
+        savePlaylist(playlist);
 
         return "playlist_built_success";
     }
@@ -51,7 +56,6 @@ public class SpotifyApiService {
         for (String song : setlist.getSongNames()) {
             q = artist + " " + song;
             url = "https://api.spotify.com/v1/search?q=" + URLEncoder.encode(q, StandardCharsets.UTF_8) + "&type=track";
-            log.info("URL: " + url);
 
             response = spotifyApiRepository.get(url, entity, String.class);
 
@@ -62,8 +66,6 @@ public class SpotifyApiService {
                 uri = jsonService.parseSearchResultForUri(response.getBody(), setlist.getArtist());
                 if (!(uri.equals("error"))) {
                     songlist.add(uri);
-                    log.info("Track: " + song);
-                    log.info("Uri: " + uri);
                 } else {
                     log.info("Failed to parse for track: " + song);
                 }
@@ -84,7 +86,7 @@ public class SpotifyApiService {
         return response;
     }
 
-    public String createPlaylist(Setlist setlist, String accessToken) {
+    public Playlist createPlaylist(Setlist setlist, String accessToken) {
         CreatePlaylistDto createPlaylistDto = setCreatePlaylistDto(setlist);
 
         HttpEntity<String> entity = new HttpEntity<>(jsonService.dtoToJson(createPlaylistDto), createHeaders(accessToken));
@@ -93,9 +95,14 @@ public class SpotifyApiService {
 
         ResponseEntity<String> response = spotifyApiRepository.post(url, entity, String.class);
         if(response.getStatusCodeValue() != 201) {
-            return "error";
+            //TODO Really need to handle errors better
         }
-        return jsonService.parseForId(response.getBody());
+
+        return new Playlist(
+                setlist.getSetlistId(),
+                jsonService.parseForId(response.getBody()),
+                jsonService.parseForUrl(response.getBody())
+        );
     }
 
     public String getUserId(String accessToken) {
@@ -111,6 +118,10 @@ public class SpotifyApiService {
     public CreatePlaylistDto setCreatePlaylistDto(Setlist setlist) {
         return new CreatePlaylistDto(setlist.getArtist() + " " + setlist.getName(),
                 "Setlist for " + setlist.getArtist() + "'s show");
+    }
+
+    public void savePlaylist(Playlist playlist) {
+        playlistRepository.save(playlist);
     }
 
     public HttpHeaders createHeaders(String accessToken) {

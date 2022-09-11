@@ -1,7 +1,9 @@
 package com.example.playlist_builder.service;
 
 import com.example.playlist_builder.config.SetlistFmConfig;
+import com.example.playlist_builder.data.Playlist;
 import com.example.playlist_builder.data.Setlist;
+import com.example.playlist_builder.repository.PlaylistRepository;
 import com.example.playlist_builder.repository.SetlistFmApiRepository;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,14 +17,16 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @AllArgsConstructor
 @Service
 @Slf4j
 public class SetlistFmService {
     private SetlistFmApiRepository setlistFmApiRepository;
-    SetlistFmConfig setlistFmConfig;
+    private SetlistFmConfig setlistFmConfig;
     private ObjectMapper objectMapper;
+    private PlaylistRepository playlistRepository;
 
     public String postPlaylistUrlDelegator(Setlist setlist, String setlistUrl) {
         log.info("SetlistUrl: " + setlistUrl);
@@ -45,7 +49,13 @@ public class SetlistFmService {
         log.info("Artist: " + setlist.getArtist());
         log.info("Tracks: " + setlist.getSongNames());
 
-        return "setlist_success";
+        Optional<Playlist> playlist = playlistRepository.findById(setlist.getSetlistId());
+        if (playlist.isPresent()) {
+            log.info("Duplicate found. URL: " + playlist.get().getPlaylistUrl());
+            return "redirect:" + playlist.get().getPlaylistUrl();
+        } else {
+            return "setlist_success";
+        }
     }
 
     public String setlistIdParser(String setlistUrl) {
@@ -79,7 +89,6 @@ public class SetlistFmService {
         List<String> songNames = new ArrayList<>();
 
         try {
-            log.info("JSON: " + setlistJson);
             JsonNode rootNode = objectMapper.readTree(setlistJson);
             setlist.setArtist(rootNode.path("artist").path("name").asText());
             JsonNode setsNode = rootNode.path("sets");
