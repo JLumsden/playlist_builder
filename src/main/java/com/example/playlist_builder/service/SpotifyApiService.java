@@ -3,7 +3,7 @@ package com.example.playlist_builder.service;
 import com.example.playlist_builder.data.CreatePlaylistDto;
 import com.example.playlist_builder.data.Playlist;
 import com.example.playlist_builder.data.Setlist;
-import com.example.playlist_builder.data.SonglistDto;
+import com.example.playlist_builder.data.Songlist;
 import com.example.playlist_builder.repository.PlaylistRepository;
 import com.example.playlist_builder.repository.SpotifyApiRepository;
 import lombok.AllArgsConstructor;
@@ -29,14 +29,14 @@ public class SpotifyApiService {
     private final PlaylistRepository playlistRepository;
 
     public String buildPlaylistDelegator(Setlist setlist, String accessToken) {
-        SonglistDto songlistDto = createSonglistDto(setlist, accessToken);
+        Songlist songlist = createSonglist(setlist, accessToken);
 
         Playlist playlist = createPlaylist(setlist, accessToken);
         if (playlist.getPlaylistId().equals("error")) {
             return playlist.getPlaylistId();
         }
 
-        ResponseEntity<String> response = populatePlaylist(songlistDto, playlist.getPlaylistId(), accessToken);
+        ResponseEntity<String> response = populatePlaylist(songlist, playlist.getPlaylistId(), accessToken);
         if (response.getStatusCodeValue() != 201) {
             return "error";
         }
@@ -46,7 +46,7 @@ public class SpotifyApiService {
         return "playlist_built_success";
     }
 
-    public SonglistDto createSonglistDto(Setlist setlist, String accessToken) throws HttpClientErrorException {
+    public Songlist createSonglist(Setlist setlist, String accessToken) throws HttpClientErrorException {
         List<String> songlist = new ArrayList<>();
         String artist = setlist.getArtist();
         String url, uri, q;
@@ -71,13 +71,13 @@ public class SpotifyApiService {
                 }
             }
         }
-        return new SonglistDto(songlist);
+        return new Songlist(songlist);
     }
 
-    public ResponseEntity<String> populatePlaylist(SonglistDto songlistDto, String playlistId, String accessToken) {
+    public ResponseEntity<String> populatePlaylist(Songlist songlist, String playlistId, String accessToken) {
         String url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks";
 
-        String payload = jsonService.dtoToJson(songlistDto);
+        String payload = jsonService.dtoToJson(songlist);
 
         HttpEntity<String> entity = new HttpEntity<>(payload, createHeaders(accessToken));
 

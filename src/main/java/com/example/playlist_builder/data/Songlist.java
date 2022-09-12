@@ -9,6 +9,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SonglistDto {
+public class Songlist {
     private List<String> uris;
 }
