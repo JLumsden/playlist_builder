@@ -42,7 +42,7 @@ public class SetlistFmService {
             return "error";
         }
 
-        parseJson(setlist, response.getBody());
+        parseJsonForSetlist(setlist, response.getBody());
 
         log.info("SetlistId: " + setlist.getSetlistId());
         log.info("Name: " + setlist.getName());
@@ -85,8 +85,9 @@ public class SetlistFmService {
         return setlistFmApiRepository.get(apiUrl, entity, String.class);
     }
 
-    public void parseJson(Setlist setlist, String setlistJson) {
+    public void parseJsonForSetlist(Setlist setlist, String setlistJson) {
         List<String> songNames = new ArrayList<>();
+        String songName;
 
         try {
             JsonNode rootNode = objectMapper.readTree(setlistJson);
@@ -101,7 +102,13 @@ public class SetlistFmService {
             for (JsonNode set : setNode) {
                 songNode = set.path("song");
                 for (JsonNode song : songNode) {
-                    songNames.add(song.path("name").asText());
+                    songName = song.path("name").asText();
+                    if (songName.contains("/")) {
+                        List<String> multipleSongs = List.of(songName.split("/"));
+                        songNames.addAll(multipleSongs);
+                    } else {
+                        songNames.add(songName);
+                    }
                 }
             }
             setlist.setSongNames(songNames);

@@ -102,7 +102,7 @@ public class JsonService {
     }
 
     public boolean isTrackName(JsonNode trackNode, String trackName) {
-        if (trackNode.path("name").asText().toLowerCase().contains(trackName.toLowerCase())) {
+        if (trackNode.path("name").asText().toLowerCase().replaceAll("\\s", "").contains(trackName.toLowerCase().replaceAll("\\s", ""))) {
             return true;
         }
         return false;
