@@ -11,8 +11,8 @@ A .jar of the program can be found in ```out/artifacts/playlist_builder_jar```. 
 ### To-Dos  
 - [ ] Better UI. (Front end wizards who are bored or need a project, I will welcome you with open arms.)  
 - [ ] Create the playlists off my own account to ensure they stay public.  
-- [ ] Add a database to store playlist links to cutdown on duplicate playlists.  
-- [ ] Handle track choosing from the search query better. Probably give the user more choice with this in choosing versions of songs.  
+- [ x ] Add a database to store playlist links to cutdown on duplicate playlists.  
+- [ x ] Handle track choosing from the search query better. Probably give the user more choice with this in choosing versions of songs.  
 - [ ] Improve error handling.  
 - [ ] Write tests.  
 - [ ] Implement Spring Security and some input sanitizing with it. Don't want to send SQL injection attacks to either API provider.
