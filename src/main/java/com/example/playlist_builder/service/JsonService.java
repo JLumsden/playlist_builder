@@ -102,7 +102,13 @@ public class JsonService {
     }
 
     public boolean isTrackName(JsonNode trackNode, String trackName) {
-        if (trackNode.path("name").asText().toLowerCase().replaceAll("\\s", "").contains(trackName.toLowerCase().replaceAll("\\s", ""))) {
+        String brokenDownJsonEntry, brokenDownTrackName;
+
+        //Converts to lower case and removes all spaces
+        brokenDownJsonEntry = trackNode.path("name").asText().toLowerCase().replaceAll("\\s", "");
+        brokenDownTrackName = trackName.toLowerCase().replaceAll("\\s", "");
+
+        if (brokenDownJsonEntry.contains(brokenDownTrackName)) {
             return true;
         }
         return false;
