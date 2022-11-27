@@ -10,8 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -78,13 +78,7 @@ public class JsonService {
     }
 
     public boolean filterTrack(JsonNode trackNode, String artist, String trackName) {
-        if (!isTrackName(trackNode, trackName)) {
-            return false;
-        }
-        if (!isArtist(trackNode, artist)) {
-            return false;
-        }
-        return true;
+        return isTrackName(trackNode, trackName) && isArtist(trackNode, artist);
     }
 
     public boolean isArtist(JsonNode trackNode, String artist) {
@@ -108,19 +102,18 @@ public class JsonService {
         brokenDownJsonEntry = trackNode.path("name").asText().toLowerCase().replaceAll("\\s", "");
         brokenDownTrackName = trackName.toLowerCase().replaceAll("\\s", "");
 
-        if (brokenDownJsonEntry.contains(brokenDownTrackName)) {
-            return true;
-        }
-        return false;
+        return brokenDownJsonEntry.contains(brokenDownTrackName);
     }
 
     public String findMostPopularUri(List<Track> trackList) {
-        Collections.sort(trackList, new TrackPopularityComparator());
-        if (trackList.isEmpty()) {
+        Optional<Track> mostPopularTrack = trackList.stream().max(new TrackPopularityComparator());
+
+        if (mostPopularTrack.isEmpty()) {
             //TODO
             return "error";
         }
-        return trackList.get(0).getUri();
+
+        return mostPopularTrack.get().getUri();
     }
 
     public Track createTrackFromJson(JsonNode trackNode) {

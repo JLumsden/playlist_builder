@@ -64,6 +64,7 @@ public class SpotifyApiService {
                 throw new RuntimeException();
             } else {
                 uri = jsonService.parseSearchResultForUri(response.getBody(), setlist.getArtist(), song);
+
                 if (!(uri.equals("error"))) {
                     songlist.add(uri);
                 } else {

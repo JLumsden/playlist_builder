@@ -14,9 +14,9 @@ public class TrackPopularityComparator implements Comparator<Track> {
         if (pop1 == pop2) {
             return 0;
         } else if (pop1 < pop2) {
-            return 1;
-        } else {
             return -1;
+        } else {
+            return 1;
         }
     }
 }
