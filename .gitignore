@@ -31,3 +31,8 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+### Files ###
+src/main/java/com/example/playlist_builder/config/SetlistFmConfig.java
+src/main/java/com/example/playlist_builder/authentication/SpotifyAuthConfig.java
