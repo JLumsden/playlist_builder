@@ -29,12 +29,12 @@ public class SpotifyAuthService {
     private final SpotifyApiRepository spotifyApiRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public String getAccessTokenDelegator(AuthData authData, String authCode) {
+    public String getAuthDataDelegator(AuthData authData, String authCode) {
         ResponseEntity<String> response = getAccessToken(authCode);
         if(response.getStatusCodeValue() != 200) {
             return "error";
         }
-        return parseJsonForAccessToken(response.getBody(), authData);
+        return parseJsonForAuthData(response.getBody());
     }
 
     public String getAuthUrl() {
@@ -81,23 +81,15 @@ public class SpotifyAuthService {
 
     public HttpHeaders createHeaders() {
         HttpHeaders headers = new HttpHeaders();
+        headers.setBasicAuth(spotifyAuthConfig.getClientId(), spotifyAuthConfig.getClientSecret());
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         return headers;
     }
 
-    public String parseJsonForAccessToken(String response, AuthData authData) {
-        try {
-            JsonNode rootNode = objectMapper.readTree(response);
-            authData.setAccess_token(rootNode.path("access_token").asText());
-        } catch (JsonParseException e) {
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public AuthData parseJsonForAuthData(String response) throws JsonProcessingException {
+        AuthData authData = objectMapper.readValue(response, AuthData.class);
         //Should utilize SpotifyAuthConfig better here
-        return "authenticated";
+        return authData;
     }
 }

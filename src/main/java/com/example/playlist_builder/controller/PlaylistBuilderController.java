@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.view.RedirectView;
 
 @SessionAttributes({"setlist","authData"})
 @Slf4j
@@ -28,17 +28,18 @@ public class PlaylistBuilderController {
 
     @RequestMapping(value = "/playlist", method = RequestMethod.GET)
     public String buildPlaylist(@ModelAttribute("setlist") Setlist setlist, @ModelAttribute("authData") AuthData authData) {
+        log.error("authData: " + authData.getAccess_token() + " " + authData.getRefresh_token());
         return spotifyApiService.buildPlaylistDelegator(setlist, authData.getAccess_token());
     }
 
     @RequestMapping(value = "/auth", method = RequestMethod.GET)
-    public ModelAndView performAuthentication() {
-        return new ModelAndView("redirect:" + spotifyAuthService.getAuthUrl());
+    public RedirectView performAuthentication() {
+        return new RedirectView(spotifyAuthService.getAuthUrl());
     }
 
     @RequestMapping(value = "/authenticated", method = RequestMethod.GET)
     public String authenticated(@ModelAttribute("authData") AuthData authData, @RequestParam(value = "code") final String authCode) {
-        return spotifyAuthService.getAccessTokenDelegator(authData, authCode);
+        return spotifyAuthService.getAuthDataDelegator(authData, authCode);
     }
 
     @RequestMapping(value="/", method = RequestMethod.GET)
