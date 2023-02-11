@@ -29,53 +29,29 @@ public class SpotifyAuthService {
     private final SpotifyApiRepository spotifyApiRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public void performAuthenticationDelegator(AuthData authData) {
-        createCodeVerifier(authData);
-        createCodeChallenge(authData);
-    }
-
     public String getAccessTokenDelegator(AuthData authData, String authCode) {
-        ResponseEntity<String> response = getAccessToken(authData, authCode);
+        ResponseEntity<String> response = getAccessToken(authCode);
         if(response.getStatusCodeValue() != 200) {
             return "error";
         }
         return parseJsonForAccessToken(response.getBody(), authData);
     }
 
-    public String getAuthUrl(AuthData authData) {
-        return "https://accounts.spotify.com/en/authorize?client_id=" + spotifyAuthConfig.getClientId()
-                + "&response_type=code&redirect_uri=" + spotifyAuthConfig.getRedirectUrl()
-                + "&code_challenge_method=S256&code_challenge=" + authData.getCode_challenge()
-                + "&scope=" + spotifyAuthConfig.getAuthScopes()
-                + "&show_dialog=true";
+    public String getAuthUrl() {
+        return "https://accounts.spotify.com/en/authorize"
+                + "?client_id=" + spotifyAuthConfig.getClientId()
+                + "&response_type=code"
+                + "&redirect_uri=" + spotifyAuthConfig.getRedirectUrl()
+                //TODO implement state for CSRF protection
+                //https://datatracker.ietf.org/doc/html/rfc6749#section-4.1
+                + "&scope=" + spotifyAuthConfig.getAuthScopes();
     }
 
-    public ResponseEntity<String> getAccessToken(AuthData authData, String code) {
-        MultiValueMap<String, String> payload = createAuthPayload(authData, code);
+    public ResponseEntity<String> getAccessToken(String code) {
+        MultiValueMap<String, String> payload = createAuthPayload(code);
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(payload, createHeaders());
 
         return spotifyApiRepository.post(spotifyAuthConfig.getAuthUrl(), request, String.class);
-    }
-
-    public void createCodeVerifier(AuthData authData) {
-        SecureRandom secureRandom = new SecureRandom();
-        byte[] codeVerifier = new byte[32];
-        secureRandom.nextBytes(codeVerifier);
-        authData.setCode_verifier(Base64.getUrlEncoder()
-                .withoutPadding().encodeToString(codeVerifier));
-    }
-
-    public void createCodeChallenge(AuthData authData) {
-        byte[] digest = null;
-        try {
-            byte[] bytes = authData.getCode_verifier().getBytes("US-ASCII");
-            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
-            messageDigest.update(bytes, 0, bytes.length);
-            digest = messageDigest.digest();
-        } catch (UnsupportedEncodingException | NoSuchAlgorithmException exception) {
-            log.error("Unable to generate code challenge {}", exception);
-        }
-        authData.setCode_challenge(Base64.getUrlEncoder().withoutPadding().encodeToString(digest));
     }
 
 //    public String createAuthPayload(AuthData authData, String code) {
@@ -94,13 +70,11 @@ public class SpotifyAuthService {
 //        }
 //    }
 
-    public MultiValueMap<String, String> createAuthPayload(AuthData authData, String code) {
+    public MultiValueMap<String, String> createAuthPayload(String authCode) {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
-        map.add("client_id", spotifyAuthConfig.getClientId());
         map.add("grant_type", "authorization_code");
-        map.add("code", code);
+        map.add("code", authCode);
         map.add("redirect_uri", spotifyAuthConfig.getRedirectUrl());
-        map.add("code_verifier", authData.getCode_verifier());
 
         return map;
     }

@@ -32,9 +32,8 @@ public class PlaylistBuilderController {
     }
 
     @RequestMapping(value = "/auth", method = RequestMethod.GET)
-    public ModelAndView performAuthentication(@ModelAttribute("authData") AuthData authData) {
-        spotifyAuthService.performAuthenticationDelegator(authData);
-        return new ModelAndView("redirect:" + spotifyAuthService.getAuthUrl(authData));
+    public ModelAndView performAuthentication() {
+        return new ModelAndView("redirect:" + spotifyAuthService.getAuthUrl());
     }
 
     @RequestMapping(value = "/authenticated", method = RequestMethod.GET)
