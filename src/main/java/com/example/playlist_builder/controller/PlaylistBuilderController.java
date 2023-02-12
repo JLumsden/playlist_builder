@@ -21,16 +21,16 @@ public class PlaylistBuilderController {
     private final SpotifyApiService spotifyApiService;
     private final SpotifyAuthService spotifyAuthService;
 
-    @RequestMapping(value = "/setlist", method = RequestMethod.POST)
-    public String postSetlistUrl(@ModelAttribute("setlist") Setlist setlist, String setlistUrl) {
-        return setlistFmService.postPlaylistUrlDelegator(setlist, setlistUrl);
-    }
-
-    @RequestMapping(value = "/playlist", method = RequestMethod.GET)
-    public String buildPlaylist(@ModelAttribute("setlist") Setlist setlist, @ModelAttribute("authData") AuthData authData) {
-        log.error("authData: " + authData.getAccess_token() + " " + authData.getRefresh_token());
-        return spotifyApiService.buildPlaylistDelegator(setlist, authData.getAccess_token());
-    }
+//    @RequestMapping(value = "/setlist", method = RequestMethod.POST)
+//    public String postSetlistUrl(@ModelAttribute("setlist") Setlist setlist, String setlistUrl) {
+//        return setlistFmService.postPlaylistUrlDelegator(setlist, setlistUrl);
+//    }
+//
+//    @RequestMapping(value = "/playlist", method = RequestMethod.GET)
+//    public String buildPlaylist(@ModelAttribute("setlist") Setlist setlist, @ModelAttribute("authData") AuthData authData) {
+//        log.error("authData: " + authData.getAccess_token() + " " + authData.getRefresh_token());
+//        return spotifyApiService.buildPlaylistDelegator(setlist, authData.getAccess_token());
+//    }
 
     @RequestMapping(value = "/auth", method = RequestMethod.GET)
     public RedirectView performAuthentication() {
@@ -42,10 +42,10 @@ public class PlaylistBuilderController {
         return spotifyAuthService.getAuthDataDelegator(authData, authCode);
     }
 
-    @RequestMapping(value="/", method = RequestMethod.GET)
-    public String getHome() {
-        return "index";
-    }
+//    @RequestMapping(value="/", method = RequestMethod.GET)
+//    public String getHome() {
+//        return "index";
+//    }
     @RequestMapping(value="/error", method = RequestMethod.GET)
     public String getError() {
         return "error";
